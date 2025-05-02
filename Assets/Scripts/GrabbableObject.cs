@@ -66,7 +66,11 @@ public class GrabbableObject : MonoBehaviour
 
         if (objectCollider != null)
             objectCollider.enabled = false;
+
+        if (SnapManager.Instance != null)
+            SnapManager.Instance.CheckForCompletion();
     }
+
 
     public bool IsSnapped()
     {

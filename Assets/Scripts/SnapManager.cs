@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -7,10 +8,12 @@ public class SnapManager : MonoBehaviour
     public static SnapManager Instance;
 
     public TextMeshProUGUI timerText;
+    public TextMeshProUGUI errorText; // Ajoute ça dans l’inspecteur Unity
 
     private float timer = 0f;
     private bool isRunning = false;
     private bool hasStarted = false;
+    private int errorCount = 0; // Compteur d’erreurs
 
     private List<GrabbableObject> taggedCubes;
 
@@ -50,11 +53,33 @@ public class SnapManager : MonoBehaviour
             timerText.text = FormatTime(timer);
         }
 
+        if (errorText != null)
+        {
+            errorText.text = $"Erreurs : {errorCount}";
+        }
     }
 
     private void OnObjectReleased(GrabbableObject obj)
     {
+        StartCoroutine(DelayedSnapCheck(obj));
+    }
+
+    private IEnumerator DelayedSnapCheck(GrabbableObject obj)
+    {
+        yield return null; // Attendre un frame
+
+        if (!obj.IsSnapped())
+        {
+            RegisterError();
+        }
+
         CheckForCompletion();
+    }
+
+    private void RegisterError()
+    {
+        errorCount++;
+        Debug.Log($"Erreur détectée ! Total erreurs : {errorCount}");
     }
 
     public void StartTimer()
@@ -62,6 +87,7 @@ public class SnapManager : MonoBehaviour
         isRunning = true;
         hasStarted = true;
         timer = 0f;
+        errorCount = 0; // Réinitialisation du compteur
         Debug.Log("Timer started.");
     }
 
@@ -71,12 +97,12 @@ public class SnapManager : MonoBehaviour
         Debug.Log($"Timer stopped at {timer:F2} seconds.");
     }
 
-    private void CheckForCompletion()
+    public void CheckForCompletion()
     {
         foreach (var cube in taggedCubes)
         {
             if (!cube.IsSnapped())
-                return; // Dès qu’un cube n’est pas snap, on arrête la vérif
+                return;
         }
 
         StopTimer();
@@ -87,7 +113,6 @@ public class SnapManager : MonoBehaviour
         int minutes = Mathf.FloorToInt(time / 60f);
         int seconds = Mathf.FloorToInt(time % 60f);
         int milliseconds = Mathf.FloorToInt((time * 100f) % 100);
-
         return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
     }
 
@@ -96,4 +121,8 @@ public class SnapManager : MonoBehaviour
         return isRunning;
     }
 
+    public int GetErrorCount()
+    {
+        return errorCount;
+    }
 }
