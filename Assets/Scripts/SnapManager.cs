@@ -8,12 +8,13 @@ public class SnapManager : MonoBehaviour
     public static SnapManager Instance;
 
     public TextMeshProUGUI timerText;
-    public TextMeshProUGUI errorText; // Ajoute ça dans l’inspecteur Unity
+    public TextMeshProUGUI errorText;
+    public TextMeshProUGUI clickText;
 
     private float timer = 0f;
     private bool isRunning = false;
-    private bool hasStarted = false;
-    private int errorCount = 0; // Compteur d’erreurs
+    private int errorCount = 0;
+    private int clickCount = 0;
 
     private List<GrabbableObject> taggedCubes;
 
@@ -48,6 +49,12 @@ public class SnapManager : MonoBehaviour
         if (isRunning)
             timer += Time.deltaTime;
 
+        if (Input.GetMouseButtonDown(0))
+        {
+            IncrementClickCount();
+        }
+
+
         if (timerText != null)
         {
             timerText.text = FormatTime(timer);
@@ -56,6 +63,11 @@ public class SnapManager : MonoBehaviour
         if (errorText != null)
         {
             errorText.text = $"Erreurs : {errorCount}";
+        }
+
+        if (clickText != null)
+        {
+            clickText.text = $"Clicks : {clickCount}";
         }
     }
 
@@ -66,7 +78,7 @@ public class SnapManager : MonoBehaviour
 
     private IEnumerator DelayedSnapCheck(GrabbableObject obj)
     {
-        yield return null; // Attendre un frame
+        yield return null;
 
         if (!obj.IsSnapped())
         {
@@ -82,12 +94,16 @@ public class SnapManager : MonoBehaviour
         Debug.Log($"Erreur détectée ! Total erreurs : {errorCount}");
     }
 
+    public void IncrementClickCount()
+    {
+        clickCount++;
+    }
+
     public void StartTimer()
     {
         isRunning = true;
-        hasStarted = true;
         timer = 0f;
-        errorCount = 0; // Réinitialisation du compteur
+        errorCount = 0;
         Debug.Log("Timer started.");
     }
 
@@ -124,5 +140,10 @@ public class SnapManager : MonoBehaviour
     public int GetErrorCount()
     {
         return errorCount;
+    }
+
+    public int GetClickCount()
+    {
+        return clickCount;
     }
 }

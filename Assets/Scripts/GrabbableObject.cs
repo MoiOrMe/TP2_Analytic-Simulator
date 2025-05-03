@@ -32,11 +32,15 @@ public class GrabbableObject : MonoBehaviour
         }
 
         // Démarrer le timer dès qu'on appuie sur le cube
-        if (SnapManager.Instance != null && !SnapManager.Instance.IsTimerRunning())
+        if (SnapManager.Instance != null)
         {
-            SnapManager.Instance.StartTimer();
+            if (!SnapManager.Instance.IsTimerRunning())
+            {
+                SnapManager.Instance.StartTimer();
+            }
         }
     }
+
 
 
     private void OnMouseDrag()
