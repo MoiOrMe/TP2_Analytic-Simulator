@@ -11,27 +11,87 @@ public class SnapManager : MonoBehaviour
     public TextMeshProUGUI errorText;
     public TextMeshProUGUI clickText;
 
-    private float timer = 0f;
-    private bool isRunning = false;
-    private int errorCount = 0;
-    private int clickCount = 0;
+    public List<CameraData> cameraDataList = new List<CameraData>();
+    private int currentCameraIndex = 0;
 
-    private List<GrabbableObject> taggedCubes;
+    public CameraData CurrentCameraData => cameraDataList[currentCameraIndex];
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag("1");
-        taggedCubes = new List<GrabbableObject>();
-
-        foreach (GameObject obj in taggedObjects)
+        foreach (var camData in cameraDataList)
         {
-            GrabbableObject grabbable = obj.GetComponent<GrabbableObject>();
-            if (grabbable != null)
-                taggedCubes.Add(grabbable);
+            GameObject[] taggedObjects = GameObject.FindGameObjectsWithTag(camData.tag);
+            camData.taggedCubes.Clear();
+
+            foreach (GameObject obj in taggedObjects)
+            {
+                GrabbableObject grabbable = obj.GetComponent<GrabbableObject>();
+                if (grabbable != null)
+                    camData.taggedCubes.Add(grabbable);
+            }
         }
+
+        ActivateCamera(currentCameraIndex);
+    }
+
+    private void Update()
+    {
+        var currentData = cameraDataList[currentCameraIndex];
+
+        if (currentData.isRunning)
+            currentData.timer += Time.deltaTime;
+
+        if (Input.GetMouseButtonDown(0))
+            currentData.clickCount++;
+
+        UpdateUI(currentData);
+    }
+
+    private void UpdateUI(CameraData data)
+    {
+        if (timerText != null)
+            timerText.text = FormatTime(data.timer);
+
+        if (errorText != null)
+            errorText.text = $"Erreurs : {data.errorCount}";
+
+        if (clickText != null)
+            clickText.text = $"Clicks : {data.clickCount}";
+    }
+
+    public void StartTimer()
+    {
+        var currentData = cameraDataList[currentCameraIndex];
+        currentData.timer = 0f;
+        currentData.errorCount = 0;
+        currentData.clickCount = 0;
+        currentData.isRunning = true;
+    }
+
+    private void StopTimer()
+    {
+        cameraDataList[currentCameraIndex].isRunning = false;
+    }
+
+    private void ActivateCamera(int index)
+    {
+        for (int i = 0; i < cameraDataList.Count; i++)
+        {
+            cameraDataList[i].camera.enabled = (i == index);
+        }
+
+        Debug.Log($"Caméra activée : {cameraDataList[index].camera.name}");
+    }
+
+    private string FormatTime(float time)
+    {
+        int minutes = Mathf.FloorToInt(time / 60f);
+        int seconds = Mathf.FloorToInt(time % 60f);
+        int milliseconds = Mathf.FloorToInt((time * 100f) % 100);
+        return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
     }
 
     private void OnEnable()
@@ -42,33 +102,6 @@ public class SnapManager : MonoBehaviour
     private void OnDisable()
     {
         GrabbableObject.OnReleased -= OnObjectReleased;
-    }
-
-    private void Update()
-    {
-        if (isRunning)
-            timer += Time.deltaTime;
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            IncrementClickCount();
-        }
-
-
-        if (timerText != null)
-        {
-            timerText.text = FormatTime(timer);
-        }
-
-        if (errorText != null)
-        {
-            errorText.text = $"Erreurs : {errorCount}";
-        }
-
-        if (clickText != null)
-        {
-            clickText.text = $"Clicks : {clickCount}";
-        }
     }
 
     private void OnObjectReleased(GrabbableObject obj)
@@ -82,40 +115,17 @@ public class SnapManager : MonoBehaviour
 
         if (!obj.IsSnapped())
         {
-            RegisterError();
+            cameraDataList[currentCameraIndex].errorCount++;
         }
 
         CheckForCompletion();
     }
 
-    private void RegisterError()
-    {
-        errorCount++;
-        Debug.Log($"Erreur détectée ! Total erreurs : {errorCount}");
-    }
-
-    public void IncrementClickCount()
-    {
-        clickCount++;
-    }
-
-    public void StartTimer()
-    {
-        isRunning = true;
-        timer = 0f;
-        errorCount = 0;
-        Debug.Log("Timer started.");
-    }
-
-    private void StopTimer()
-    {
-        isRunning = false;
-        Debug.Log($"Timer stopped at {timer:F2} seconds.");
-    }
-
     public void CheckForCompletion()
     {
-        foreach (var cube in taggedCubes)
+        var currentData = cameraDataList[currentCameraIndex];
+
+        foreach (var cube in currentData.taggedCubes)
         {
             if (!cube.IsSnapped())
                 return;
@@ -124,26 +134,17 @@ public class SnapManager : MonoBehaviour
         StopTimer();
     }
 
-    private string FormatTime(float time)
-    {
-        int minutes = Mathf.FloorToInt(time / 60f);
-        int seconds = Mathf.FloorToInt(time % 60f);
-        int milliseconds = Mathf.FloorToInt((time * 100f) % 100);
-        return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
-    }
-
     public bool IsTimerRunning()
     {
-        return isRunning;
+        return cameraDataList[currentCameraIndex].isRunning;
     }
 
-    public int GetErrorCount()
+    public void SwitchToCamera(int index)
     {
-        return errorCount;
-    }
+        if (index < 0 || index >= cameraDataList.Count) return;
 
-    public int GetClickCount()
-    {
-        return clickCount;
+        cameraDataList[currentCameraIndex].camera.enabled = false;
+        currentCameraIndex = index;
+        ActivateCamera(currentCameraIndex);
     }
 }

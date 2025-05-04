@@ -31,17 +31,16 @@ public class GrabbableObject : MonoBehaviour
             grabOffset = transform.position - hitPoint;
         }
 
-        // Démarrer le timer dès qu'on appuie sur le cube
+        // Démarrer le timer si pas déjà en cours
         if (SnapManager.Instance != null)
         {
-            if (!SnapManager.Instance.IsTimerRunning())
+            var currentData = SnapManager.Instance.CurrentCameraData;
+            if (!currentData.isRunning)
             {
                 SnapManager.Instance.StartTimer();
             }
         }
     }
-
-
 
     private void OnMouseDrag()
     {
@@ -74,7 +73,6 @@ public class GrabbableObject : MonoBehaviour
         if (SnapManager.Instance != null)
             SnapManager.Instance.CheckForCompletion();
     }
-
 
     public bool IsSnapped()
     {
