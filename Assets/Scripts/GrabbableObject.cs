@@ -38,7 +38,6 @@ public class GrabbableObject : MonoBehaviour
             grabOffset = transform.position - hitPoint;
         }
 
-        // Démarrer le timer si pas déjà en cours
         if (SnapManager.Instance != null)
         {
             var currentData = SnapManager.Instance.CurrentCameraData;
@@ -61,6 +60,18 @@ public class GrabbableObject : MonoBehaviour
             Vector3 hitPoint = ray.GetPoint(enter);
             transform.position = hitPoint + grabOffset;
         }
+
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (Mathf.Abs(scroll) > 0.01f)
+        {
+            int direction = scroll > 0 ? 1 : -1;
+
+            transform.position += Vector3.up * direction;
+
+            fixedY = transform.position.y;
+        }
+
+
     }
 
     private void OnMouseUp()
