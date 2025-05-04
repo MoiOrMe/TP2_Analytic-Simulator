@@ -4,6 +4,8 @@ using System;
 [RequireComponent(typeof(Collider))]
 public class GrabbableObject : MonoBehaviour
 {
+    private Vector3 initialPosition;
+
     private float fixedY;
     private Vector3 grabOffset;
     private bool hasSnapped = false;
@@ -14,6 +16,11 @@ public class GrabbableObject : MonoBehaviour
     private void Awake()
     {
         objectCollider = GetComponent<Collider>();
+    }
+
+    private void Start()
+    {
+        initialPosition = transform.position;
     }
 
     private void OnMouseDown()
@@ -77,5 +84,13 @@ public class GrabbableObject : MonoBehaviour
     public bool IsSnapped()
     {
         return hasSnapped;
+    }
+
+    public void ResetPosition()
+    {
+        transform.position = initialPosition;
+        hasSnapped = false;
+        if (objectCollider != null)
+            objectCollider.enabled = true;
     }
 }

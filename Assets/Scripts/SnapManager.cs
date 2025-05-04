@@ -149,4 +149,23 @@ public class SnapManager : MonoBehaviour
         currentCameraIndex = index;
         ActivateCamera(currentCameraIndex);
     }
+
+    public void ResetStatsAndObjects()
+    {
+        foreach (var cameraData in cameraDataList)
+        {
+            cameraData.timer = 0f;
+            cameraData.errorCount = 0;
+            cameraData.clickCount = 0;
+            cameraData.isRunning = false;
+
+            foreach (var grabbable in cameraData.taggedCubes)
+            {
+                grabbable.ResetPosition();
+            }
+        }
+
+        UpdateUI(CurrentCameraData);
+    }
+
 }
