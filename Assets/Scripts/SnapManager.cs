@@ -42,10 +42,12 @@ public class SnapManager : MonoBehaviour
         var currentData = cameraDataList[currentCameraIndex];
 
         if (currentData.isRunning)
+        {
             currentData.timer += Time.deltaTime;
 
-        if (Input.GetMouseButtonDown(0))
-            currentData.clickCount++;
+            if (Input.GetMouseButtonDown(0))
+                currentData.clickCount++;
+        }
 
         UpdateUI(currentData);
     }
